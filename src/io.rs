@@ -4,7 +4,7 @@ use std::path::Path;
 
 pub struct IO;
 
-impl IO {
+impl<'a> IO {
     pub fn read(&self, input_path: &str) -> std::string::String {
         let path = Path::new(input_path);
         let display = path.display();
@@ -35,7 +35,7 @@ impl IO {
         }
     }
 
-    pub fn parse(&self, _text: String, base_address: i32) {
+    pub fn parse(&self, _text: &'a String, base_address: i32) {
         let mut _flag: bool = false;
         let mut buffer = Vec::new();
 
@@ -58,7 +58,7 @@ impl IO {
         self.write("new_rop_gadgets.txt".to_string(), buffer);
     }
 
-    pub fn check(&self, address: &str, state: &mut bool) {
+    pub fn check(&self, address: &'a str, state: &'a mut bool) {
         let length = address.chars().count();
         if length % 2 != 0 || length != 8 {
             return;
