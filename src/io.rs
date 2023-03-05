@@ -8,14 +8,15 @@ impl<'a> IO {
     pub fn read(&self, input_path: &str) -> std::string::String {
         let path = Path::new(input_path);
         let display = path.display();
-        let mut file = match File::open(&path) {
+        let mut string = String::new();
+        
+        let mut file = match File::open(path) {
             Err(why) => panic!("couldn't open {}: {}", display, why),
             Ok(file) => file,
         };
-        let mut string = String::new();
         match file.read_to_string(&mut string) {
             Err(why) => panic!("couldn't read {}: {}", display, why),
-            Ok(_) => println!("You Did It. The Crazy Son of a Bitch, You Did It!"),
+            Ok(string) => string,
         };
         string
     }
@@ -23,19 +24,18 @@ impl<'a> IO {
     pub fn write(&self, output_path: String, buffer: Vec<String>) {
         let path = Path::new(&output_path);
         let display = path.display();
-        let mut file = match File::create(&path) {
+        let mut file = match File::create(path) {
             Err(v) => panic!("couldn't write to {}: {}", display, v),
             Ok(file) => file,
         };
         for i in buffer.iter() {
-            match file.write_all(i.as_bytes()) {
-                Err(why) => panic!("couldn't write to {}: {}", display, why),
-                Ok(_) => (),
+            if let Err(why) = file.write_all(i.as_bytes()) {
+                panic!("couldn't write to {}: {}", display, why)
             };
         }
     }
 
-    pub fn parse(&self, _text: &'a String, base_address: i32) {
+    pub fn parse(&self, _text: &'a str, base_address: i32) {
         let mut _flag: bool = false;
         let mut buffer = Vec::new();
 
@@ -50,7 +50,7 @@ impl<'a> IO {
             };
             let new_address = format!("{:X}", new_address);
             self.check(&new_address, &mut _flag);
-            if _flag == true {
+            if _flag {
                 buffer.push(format!("{:#08X?} : {}\n", convert(&new_address), lines[1]));
                 _flag = false;
             }
@@ -65,7 +65,7 @@ impl<'a> IO {
         }
         for i in (0..length).step_by(2) {
             let _byte = address[i..i + 2].parse::<u8>().unwrap_or(0);
-            if (0x20..0x80).contains(&_byte) == false {
+            if !(0x20..0x80).contains(&_byte) {
                 *state = false;
                 break;
             } else {
