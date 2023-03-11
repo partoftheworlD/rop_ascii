@@ -9,7 +9,7 @@ impl<'a> IO {
         let path = Path::new(input_path);
         let display = path.display();
         let mut string = String::new();
-        
+
         let mut file = match File::open(path) {
             Err(why) => panic!("couldn't open {}: {}", display, why),
             Ok(file) => file,
@@ -21,41 +21,38 @@ impl<'a> IO {
         string
     }
 
-    pub fn write(&self, output_path: String, buffer: Vec<String>) {
+    pub fn write(&self, output_path: &str, buffer: &[String]) {
         let path = Path::new(&output_path);
         let display = path.display();
         let mut file = match File::create(path) {
             Err(v) => panic!("couldn't write to {}: {}", display, v),
             Ok(file) => file,
         };
-        for i in buffer.iter() {
+        for i in buffer {
             if let Err(why) = file.write_all(i.as_bytes()) {
-                panic!("couldn't write to {}: {}", display, why)
+                panic!("couldn't write to {}: {}", display, why);
             };
         }
     }
 
-    pub fn parse(&self, _text: &'a str, base_address: i32) {
-        let mut _flag: bool = false;
+    pub fn parse(&self, text: &'a str, base_address: i32) {
+        let mut flag: bool = false;
         let mut buffer = Vec::new();
 
         let convert = |x: &str| i32::from_str_radix(x, 16).unwrap();
-        let old_gadgets: Vec<_> = _text.lines().collect();
+        let old_gadgets: Vec<_> = text.lines().collect();
 
-        for gadget in old_gadgets.into_iter() {
+        for gadget in old_gadgets {
             let lines: Vec<_> = gadget.split(": ").collect();
-            let new_address = match base_address.checked_add(convert(&lines[0][2..])) {
-                Some(new_address) => new_address,
-                None => break,
-            };
-            let new_address = format!("{:X}", new_address);
-            self.check(&new_address, &mut _flag);
-            if _flag {
+            let Some(new_address) = base_address.checked_add(convert(&lines[0][2..])) else { break };
+            let new_address = format!("{new_address:X}");
+            self.check(&new_address, &mut flag);
+            if flag {
                 buffer.push(format!("{:#08X?} : {}\n", convert(&new_address), lines[1]));
-                _flag = false;
+                flag = false;
             }
         }
-        self.write("new_rop_gadgets.txt".to_string(), buffer);
+        self.write("new_rop_gadgets.txt", &buffer);
     }
 
     pub fn check(&self, address: &'a str, state: &'a mut bool) {
@@ -64,13 +61,12 @@ impl<'a> IO {
             return;
         }
         for i in (0..length).step_by(2) {
-            let _byte = address[i..i + 2].parse::<u8>().unwrap_or(0);
-            if !(0x20..0x80).contains(&_byte) {
+            let byte = address[i..i + 2].parse::<u8>().unwrap_or(0);
+            if !(0x20..0x80).contains(&byte) {
                 *state = false;
                 break;
-            } else {
-                *state = true;
             }
+            *state = true;
         }
     }
 }
