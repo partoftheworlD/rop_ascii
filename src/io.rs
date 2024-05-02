@@ -44,7 +44,9 @@ impl<'a> IO {
 
         for gadget in old_gadgets {
             let lines: Vec<_> = gadget.split(": ").collect();
-            let Some(new_address) = base_address.checked_add(convert(&lines[0][2..])) else { break };
+            let Some(new_address) = base_address.checked_add(convert(&lines[0][2..])) else {
+                break;
+            };
             let new_address = format!("{new_address:X}");
             self.check(&new_address, &mut flag);
             if flag {

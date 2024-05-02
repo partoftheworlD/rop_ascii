@@ -1,6 +1,8 @@
 mod io;
 #[cfg(test)]
-mod tests;
+mod tests {
+    mod tests;
+}
 
 //TODO: Args support
 fn main() {
