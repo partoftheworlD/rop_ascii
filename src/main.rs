@@ -1,5 +1,4 @@
 mod io;
-#[cfg(test)]
 mod tests {
     mod tests;
 }
